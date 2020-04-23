@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { uniqueId } from 'lodash';
 
 import filesize from 'filesize';
 
@@ -13,6 +14,7 @@ import alert from '../../assets/alert.svg';
 import api from '../../services/api';
 
 interface FileProps {
+  id: string;
   file: File;
   name: string;
   readableSize: string;
@@ -25,15 +27,12 @@ const Import: React.FC = () => {
   async function handleUpload(): Promise<void> {
     const data = new FormData();
 
-    uploadedFiles.forEach(uploadedFile => {
-      data.append('file', uploadedFile.file, uploadedFile.name);
-
-      try {
-        api.post('/transactions/import', data);
-      } catch (err) {
-        console.log(err.response.error);
-      }
+    const promises = uploadedFiles.map(uploadedFile => {
+      data.append('file', uploadedFile.file);
+      return api.post('/transactions/import', data);
     });
+
+    await Promise.all(promises);
 
     history.push('/');
   }
@@ -41,11 +40,14 @@ const Import: React.FC = () => {
   function submitFile(files: File[]): void {
     const listUploadedFiles = files.map(file => ({
       file,
+      id: uniqueId(),
       name: file.name,
       readableSize: filesize(file.size),
     }));
 
-    setUploadedFiles(uploadedFiles.concat(listUploadedFiles));
+    setUploadedFiles([...uploadedFiles, ...listUploadedFiles]);
+
+    console.log(uploadedFiles);
   }
 
   return (
