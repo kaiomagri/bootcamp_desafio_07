@@ -27,12 +27,12 @@ const Import: React.FC = () => {
   async function handleUpload(): Promise<void> {
     const data = new FormData();
 
-    const promises = uploadedFiles.map(uploadedFile => {
-      data.append('file', uploadedFile.file);
-      return api.post('/transactions/import', data);
-    });
-
-    await Promise.all(promises);
+    await Promise.all(
+      uploadedFiles.map(uploadedFile => {
+        data.append('file', uploadedFile.file);
+        return api.post('/transactions/import', data);
+      }),
+    );
 
     history.push('/');
   }
@@ -46,8 +46,6 @@ const Import: React.FC = () => {
     }));
 
     setUploadedFiles([...uploadedFiles, ...listUploadedFiles]);
-
-    console.log(uploadedFiles);
   }
 
   return (
